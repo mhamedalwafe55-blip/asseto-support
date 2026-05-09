@@ -3,82 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asseto Health | تحويل الطلب</title>
+    <title>توجيه إلى واتساب...</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        .container {
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-            margin: 20px auto;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; text-align: center; margin-top: 20%; background-color: #f4f6f9; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #25D366; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h1 { font-size: 1.5rem; color: #2c3e50; }
-        p { color: #7f8c8d; }
+        .btn { display: inline-block; background-color: #25D366; color: white; padding: 12px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; font-size: 16px; }
     </style>
 </head>
 <body>
-
-<div class="container">
+    <h2 style="color: #333;">جاري تحويل طلبك...</h2>
     <div class="loader"></div>
-    <h1>جاري معالجة طلبك...</h1>
-    <p>سيتم تحويلك إلى الواتساب لإرسال الطلب تلقائياً</p>
-</div>
+    <p style="color: #666;">سيتم فتح تطبيق الواتساب تلقائياً.</p>
+    
+    <script>
+        // ⚠️ ضع رقم هاتفك هنا مع رمز الدولة، بدون أصفار إضافية أو علامة زائد (مثال: 2189...)
+        const PHONE_NUMBER = "218925373243"; 
 
-<script>
-    // --- الإعدادات ---
-    const MY_PHONE_NUMBER = "218925373243"; // استبدل XXXXXXXX برقم هاتفك الدولي (بدون + أو 00)
-
-    // دالة لجلب البيانات من الرابط (URL Parameters)
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
-
-    // جلب البيانات المرسلة من برنامج البايثون
-    const type = getQueryParam('type'); // نوع الطلب (صيانة أو قطعة غيار)
-    const org = getQueryParam('org');   // اسم المؤسسة
-    const detail = getQueryParam('detail'); // تفاصيل الصنف أو الجهاز
-    const notes = getQueryParam('notes');   // الملاحظات
-
-    // تنسيق الرسالة النهائية
-    let message = `*طلب جديد من نظام Asseto Health*\n`;
-    message += `------------------------------\n`;
-    message += `🏛️ *الجهة:* ${org || 'غير معروف'}\n`;
-    message += `📝 *نوع الطلب:* ${type === 'maintenance' ? '🔧 صيانة خارجية' : '📦 طلب قطع غيار'}\n`;
-    message += `📋 *التفاصيل:* ${detail || 'لا توجد تفاصيل'}\n`;
-    if (notes) message += `💡 *ملاحظات إضافية:* ${notes}\n`;
-    message += `------------------------------\n`;
-    message += `🕒 *التوقيت:* ${new Date().toLocaleString('ar-LY')}`;
-
-    // ترميز الرسالة للرابط
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappLink = `https://wa.me/${MY_PHONE_NUMBER}?text=${encodedMessage}`;
-
-    // التحويل التلقائي بعد ثانية واحدة (لإعطاء شعور بالاحترافية)
-    setTimeout(() => {
-        window.location.href = whatsappLink;
-    }, 1500);
-</script>
-
+        window.onload = function() {
+            // سحب المتغيرات من الرابط
+            const urlParams = new URLSearchParams(window.location.search);
+            // قراءة الرسالة المنسقة القادمة من البايثون
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                // التوجيه إلى واتساب مع فك التشفير السليم للحروف العربية
+                const whatsappUrl = "https://wa.me/" + PHONE_NUMBER + "?text=" + encodeURIComponent(dataParam);
+                
+                // محاولة فتح الواتساب تلقائياً
+                window.location.replace(whatsappUrl);
+                
+                // إضافة زر يدوي في حال كان المتصفح يمنع التوجيه التلقائي
+                document.body.innerHTML += '<br><a href="' + whatsappUrl + '" class="btn">اضغط هنا لفتح الواتساب</a>';
+            } else {
+                // في حال كان الرمز لا يحتوي على بيانات
+                document.body.innerHTML = "<h3 style='color:#F44336; margin-top: 20px;'>عذراً، رمز الاستجابة (QR) لا يحتوي على بيانات طلب صحيحة.</h3>";
+            }
+        };
+    </script>
 </body>
 </html>
