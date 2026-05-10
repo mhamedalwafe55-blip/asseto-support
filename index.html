@@ -3,43 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>توجيه إلى واتساب...</title>
+    <title>Asseto Health - تحويل الطلب</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; text-align: center; margin-top: 20%; background-color: #f4f6f9; }
-        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #25D366; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn { display: inline-block; background-color: #25D366; color: white; padding: 12px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; font-size: 16px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 { font-size: 18px; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h2 style="color: #333;">جاري تحويل طلبك...</h2>
-    <div class="loader"></div>
-    <p style="color: #666;">سيتم فتح تطبيق الواتساب تلقائياً.</p>
-    
-    <script>
-        // ⚠️ ضع رقم هاتفك هنا مع رمز الدولة، بدون أصفار إضافية أو علامة زائد (مثال: 2189...)
-        const PHONE_NUMBER = "218925373243"; 
 
-        window.onload = function() {
-            // سحب المتغيرات من الرابط
-            const urlParams = new URLSearchParams(window.location.search);
-            // قراءة الرسالة المنسقة القادمة من البايثون
-            const dataParam = urlParams.get('data');
+    <div class="container">
+        <div class="loader"></div>
+        <h1>جاري تجهيز طلبك...</h1>
+        <p>سيتم تحويلك إلى واتساب الآن لتأكيد البيانات</p>
+    </div>
+
+    <script>
+        // دالة لاستخراج البيانات من الرابط
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+            if (!data) return null;
             
-            if (dataParam) {
-                // التوجيه إلى واتساب مع فك التشفير السليم للحروف العربية
-                const whatsappUrl = "https://wa.me/" + PHONE_NUMBER + "?text=" + encodeURIComponent(dataParam);
-                
-                // محاولة فتح الواتساب تلقائياً
-                window.location.replace(whatsappUrl);
-                
-                // إضافة زر يدوي في حال كان المتصفح يمنع التوجيه التلقائي
-                document.body.innerHTML += '<br><a href="' + whatsappUrl + '" class="btn">اضغط هنا لفتح الواتساب</a>';
+            // تفكيك البيانات المرسلة بصيغة KEY:VALUE|KEY:VALUE
+            const result = {};
+            const pairs = data.split('|');
+            pairs.forEach(pair => {
+                const [key, value] = pair.split(':');
+                if (key && value) {
+                    result[key.trim()] = value.trim();
+                }
+            });
+            return result;
+        }
+
+        function redirectToWhatsApp() {
+            const data = getQueryParams();
+            const phoneNumber = "218925373243"; // رقمك الخاص
+
+            if (data) {
+                // بناء الرسالة بالتنسيق الجمالي الذي طلبته
+                // \n تستخدم لعمل سطر جديد في الواتساب
+                const message = 
+                    `*طلب جديد من نظام Asseto Health*\n` +
+                    `------------------------------\n` +
+                    `*الجهة:* ${data.ORG || 'غير محدد'}\n` +
+                    `*العنوان:* ${data.ADDR || 'غير محدد'}\n` +
+                    `*رقم التواصل:* ${data.TEL || 'غير محدد'}\n` +
+                    `------------------------------\n` +
+                    `*نوع الطلب:* ${data.TYPE || 'غير محدد'}\n` +
+                    `*الجهاز/الصنف:* ${data.ITEM || 'غير محدد'}\n` +
+                    `*التفاصيل:* ............................`;
+
+                // تحويل النص إلى تنسيق URL لضمان سلامة الرموز والأسطر
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+                // تنفيذ التحويل التلقائي
+                window.location.href = whatsappUrl;
             } else {
-                // في حال كان الرمز لا يحتوي على بيانات
-                document.body.innerHTML = "<h3 style='color:#F44336; margin-top: 20px;'>عذراً، رمز الاستجابة (QR) لا يحتوي على بيانات طلب صحيحة.</h3>";
+                document.querySelector('h1').innerText = "خطأ في البيانات";
+                document.querySelector('p').innerText = "لم يتم العثور على بيانات صالحة في الرابط.";
             }
-        };
+        }
+
+        // تشغيل التحويل بعد ثانية واحدة لإعطاء فرصة للمستخدم لرؤية الرسالة
+        setTimeout(redirectToWhatsApp, 1000);
     </script>
 </body>
 </html>
